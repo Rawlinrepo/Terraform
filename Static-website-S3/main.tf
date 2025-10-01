@@ -1,78 +1,68 @@
 terraform {
   required_providers {
     aws = {
-      source = "hashicorp/aws"
-      version = "6.9.0"
-    }
-    random = {
-      source = "hashicorp/random"
-      version = "3.7.2"
+      source  = "hashicorp/aws"
+      version = "6.14.1"
     }
   }
 }
 
 provider "aws" {
-  region = "eu-north-1"
+  region = "ap-south-1"
 }
 
-resource "random_id" "random-id"{
-    byte_length = 8
+resource "aws_s3_bucket" "s3" {
+  bucket = "rawlin.endure.portfolio"
 }
 
-resource "aws_s3_bucket" "my-webapp-bucket" {
-    bucket = "my-webapp-bucket-${random_id.random-id.hex}"
-
+resource "aws_s3_object" "index" {
+  bucket = aws_s3_bucket.s3.bucket
+  source = "./website/index.html"
+  key    = "index.html"
+  content_type = "text/html"
 }
 
-resource "aws_s3_bucket_public_access_block" "mywebapp" {
-  bucket = aws_s3_bucket.my-webapp-bucket.id
+resource "aws_s3_object" "css" {
+  bucket = aws_s3_bucket.s3.bucket
+  source = "./website/style.css"
+  key    = "style.css"
+  content_type = "text/css"
+}
 
+resource "aws_s3_bucket_public_access_block" "s3pab" {
+  bucket                  = aws_s3_bucket.s3.id
   block_public_acls       = false
   block_public_policy     = false
   ignore_public_acls      = false
   restrict_public_buckets = false
 }
 
-resource "aws_s3_bucket_policy" "mywebapp" {
-  bucket = aws_s3_bucket.my-webapp-bucket.id
-  policy = jsonencode(
-    {
+resource "aws_s3_bucket_policy" "s3bp" {
+  bucket = aws_s3_bucket.s3.id
+  policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
-        {
-            Sid = "PublicReadGetObject",
-            Effect = "Allow",
-            Principal = "*",
-            Action = "s3:GetObject",
-            Resource = "arn:aws:s3:::${aws_s3_bucket.my-webapp-bucket.id}/*"
-        }
+      {
+        Effect    = "Allow",
+        Principal = "*",
+        Action    = "s3:GetObject",
+        Resource  = "arn:aws:s3:::${aws_s3_bucket.s3.id}/*"
+      }
     ]
-}
+    }
   )
 }
 
-resource "aws_s3_object" "index-html" {
-  bucket = aws_s3_bucket.my-webapp-bucket.id
-  source = "./index.html"
-  key = "index.html"
-  content_type = "text/html"
+resource "aws_s3_bucket_website_configuration" "s3bwc" {
+  bucket = aws_s3_bucket.s3.id
+
+  index_document {
+    suffix = "index.html"
+  }
 }
 
-resource "aws_s3_object" "style-css" {
-  bucket = aws_s3_bucket.my-webapp-bucket.id
-  source = "./style.css"
-  key = "style.css"
-  content_type = "text/css"
+output "link" {
+    value = aws_s3_bucket_website_configuration.s3bwc.website_endpoint
+  
 }
 
-resource "aws_s3_bucket_website_configuration" "mywebapp" {
-    bucket = aws_s3_bucket.my-webapp-bucket.id
-
-    index_document {
-      suffix = "index.html"
-    }  
-}
-
-output "Static-website-url" {
-    value = aws_s3_bucket_website_configuration.mywebapp.website_endpoint
-}
