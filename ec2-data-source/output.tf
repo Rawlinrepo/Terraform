@@ -12,6 +12,12 @@ output "Public-subnet-id" {
 }
 
 #URL
+/*
 output "URL" {
   value = "http://${aws_instance.ec2.public_ip}"
+}
+*/
+#Get Private ip of all ec2
+output "private-ip" {
+  value = aws_instance.ec2[*].private_ip
 }
