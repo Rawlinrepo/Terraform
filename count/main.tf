@@ -14,8 +14,13 @@ provider "aws" {
 resource "aws_instance" "name" {
   ami = "ami-0f5d42f0ba3ba0328"
   instance_type = "t4g.nano"
-  count = 14
+  count = 1
   tags = {
     Name = "App-server-${count.index+1}"
+  }
+  lifecycle {
+    #create_before_destroy = true
+    #prevent_destroy = true
+    
   }
 }
