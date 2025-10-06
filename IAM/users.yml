@@ -1,0 +1,7 @@
+users:
+  - username: ashutosh
+  - username: shello
+  - username: noy
+  - username: leo
+  - username: Yash.endure
+    policy : [ AmazonEC2FullAccess ] 
