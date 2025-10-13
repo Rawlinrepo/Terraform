@@ -1,0 +1,9 @@
+# Scripts
+*.sh text eol=lf
+
+# Terraform
+*.tf text eol=crlf
+
+# Ignore PEM and env files
+*.pem text eol=lf
+.env text eol=lf
